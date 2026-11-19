@@ -732,16 +732,31 @@ class CelEnvTest(absltest.TestCase):
   def test_env_options(self):
     options = cel.Options()
     self.assertTrue(options.enable_pratt_parser)
-    self.assertEqual(repr(options), "Options(enable_pratt_parser=True)")
+    self.assertEqual(options.comprehension_max_iterations, 10000)
+    self.assertEqual(
+        repr(options),
+        "Options(comprehension_max_iterations=10000, enable_pratt_parser=True)",
+    )
     options.enable_pratt_parser = False
+    options.comprehension_max_iterations = 500
     self.assertFalse(options.enable_pratt_parser)
-    self.assertEqual(repr(options), "Options(enable_pratt_parser=False)")
+    self.assertEqual(options.comprehension_max_iterations, 500)
+    self.assertEqual(
+        repr(options),
+        "Options(comprehension_max_iterations=500, enable_pratt_parser=False)",
+    )
 
-    env = cel.NewEnv(options=cel.Options(enable_pratt_parser=False))
+    env = cel.NewEnv(
+        options=cel.Options(
+            enable_pratt_parser=False, comprehension_max_iterations=250
+        )
+    )
     self.assertFalse(env.options().enable_pratt_parser)
+    self.assertEqual(env.options().comprehension_max_iterations, 250)
 
     default_env = cel.NewEnv()
     self.assertTrue(default_env.options().enable_pratt_parser)
+    self.assertEqual(default_env.options().comprehension_max_iterations, 10000)
 
 
 class TestCelExtension(cel.CelExtension):

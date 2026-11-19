@@ -25,6 +25,7 @@ struct PyCelOptions {
   static void DefinePythonBindings(pybind11::module& m);
 
   bool enable_pratt_parser = true;
+  int comprehension_max_iterations = 10000;
 };
 
 }  // namespace cel_python

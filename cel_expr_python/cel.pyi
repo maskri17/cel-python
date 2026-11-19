@@ -14,7 +14,12 @@ class CelExtensionBase:
 
 class Options:
   enable_pratt_parser: bool
-  def __init__(self, enable_pratt_parser: bool = ...) -> None: ...
+  comprehension_max_iterations: int
+  def __init__(
+      self,
+      enable_pratt_parser: bool = ...,
+      comprehension_max_iterations: int = ...,
+  ) -> None: ...
 
 class EnvConfig:
   @property

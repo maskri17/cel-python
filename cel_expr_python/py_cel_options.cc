@@ -53,11 +53,17 @@ std::string GenericRepr(py::handle self) {
 
 void PyCelOptions::DefinePythonBindings(pybind11::module& m) {
   py::class_<PyCelOptions, std::shared_ptr<PyCelOptions>>(m, "Options")
-      .def(py::init([](bool enable_pratt_parser) {
-             return PyCelOptions{.enable_pratt_parser = enable_pratt_parser};
+      .def(py::init([](bool enable_pratt_parser,
+                       int comprehension_max_iterations) {
+             return PyCelOptions{
+                 .enable_pratt_parser = enable_pratt_parser,
+                 .comprehension_max_iterations = comprehension_max_iterations};
            }),
-           py::arg("enable_pratt_parser") = true)
+           py::arg("enable_pratt_parser") = true,
+           py::arg("comprehension_max_iterations") = 10000)
       .def_readwrite("enable_pratt_parser", &PyCelOptions::enable_pratt_parser)
+      .def_readwrite("comprehension_max_iterations",
+                     &PyCelOptions::comprehension_max_iterations)
       .def("__repr__", &GenericRepr);
 }
 

@@ -290,11 +290,16 @@ absl::StatusOr<const cel::Compiler*> PyCelEnvInternal::GetCompiler() const {
 
 absl::StatusOr<std::unique_ptr<cel::Runtime>> PyCelEnvInternal::BuildRuntime(
     RuntimeMode runtime_mode) const {
+  if (options_.comprehension_max_iterations < 0) {
+    return absl::InvalidArgumentError(
+        "comprehension_max_iterations must be >= 0");
+  }
   cel::RuntimeOptions opts;
   opts.container = env_config_.GetConfig().GetContainerConfig().name;
   opts.enable_empty_wrapper_null_unboxing = true;
   opts.enable_qualified_type_identifiers = true;
   opts.enable_timestamp_duration_overflow_errors = true;
+  opts.comprehension_max_iterations = options_.comprehension_max_iterations;
   switch (runtime_mode) {
     case kStandard:
       break;

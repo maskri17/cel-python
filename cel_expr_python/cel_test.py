@@ -1257,5 +1257,50 @@ class CelAntlrParserTest(_CelTestBase):
   options = cel.Options(enable_pratt_parser=False)
 
 
+class CelComprehensionMaxIterationsTest(absltest.TestCase):
+
+  def test_default_limit(self):
+    env = cel.NewEnv(variables={"items": cel.Type.List(cel.Type.INT)})
+    self.assertEqual(env.options().comprehension_max_iterations, 10000)
+    res = env.compile("items.all(x, items.all(y, true))").eval(
+        data={"items": list(range(105))}
+    )
+    self.assertEqual(res.type(), cel.Type.ERROR)
+    self.assertIn("Iteration budget exceeded", str(res.value()))
+
+  def test_custom_limit_exceeded(self):
+    env = cel.NewEnv(
+        variables={"items": cel.Type.List(cel.Type.INT)},
+        options=cel.Options(comprehension_max_iterations=5),
+    )
+    ok_res = env.compile("items.map(x, x + 1)").eval(
+        data={"items": [1, 2, 3, 4, 5]}
+    )
+    self.assertEqual(ok_res.value(), [2, 3, 4, 5, 6])
+
+    err_res = env.compile("items.map(x, x + 1)").eval(
+        data={"items": [1, 2, 3, 4, 5, 6]}
+    )
+    self.assertEqual(err_res.type(), cel.Type.ERROR)
+    self.assertIn("Iteration budget exceeded", str(err_res.value()))
+
+  def test_zero_disables_limit(self):
+    env = cel.NewEnv(
+        variables={"items": cel.Type.List(cel.Type.INT)},
+        options=cel.Options(comprehension_max_iterations=0),
+    )
+    res = env.compile("items.all(x, items.all(y, true))").eval(
+        data={"items": list(range(105))}
+    )
+    self.assertEqual(res.type(), cel.Type.BOOL)
+    self.assertTrue(res.value())
+
+  def test_negative_limit_raises(self):
+    env = cel.NewEnv(options=cel.Options(comprehension_max_iterations=-1))
+    with self.assertRaises(Exception) as ctx:
+      env.compile("1 + 1").eval()
+    self.assertIn("comprehension_max_iterations must be >= 0", str(ctx.exception))
+
+
 if __name__ == "__main__":
   absltest.main()
